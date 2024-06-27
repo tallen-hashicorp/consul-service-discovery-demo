@@ -16,7 +16,9 @@ data:
     #!/bin/bash
     echo "Executing startup script..."
     # Add your startup commands here
-    
+    touch /tmp/tyler
+    # Wait forever
+    sleep infinity
 ---
 apiVersion: apps/v1
 kind: Deployment
@@ -37,12 +39,17 @@ spec:
       containers:
       - name: ubuntu
         image: ubuntu:latest
-        command: ["sleep", "infinity"]
+        command: ["sh", "/startup.sh"]
         tty: true
         volumeMounts:
         - name: dnsmasq-config-volume
           mountPath: /etc/dnsmasq.d
+        - name: startup-script-volume
+          mountPath: /startup.sh
       volumes:
       - name: dnsmasq-config-volume
         configMap:
           name: dnsmasq-config
+      - name: startup-script-volume
+        configMap:
+          name: startup-script
