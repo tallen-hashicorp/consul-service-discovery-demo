@@ -11,8 +11,8 @@ data:
     apt-get update -y
     apt-get install dnsmasq dnsutils ldnsutils -y
     apt install iputils-ping -y
-    apt install dnsutils
-    apt install mysql-client
+    apt install dnsutils -y
+    apt install mysql-client -y
     
     # Configure dnsmasq
     echo "server=/consul/consul.default.svc.cluster.local#8600\nserver=10.96.0.10" > /etc/dnsmasq.d/10-consul
