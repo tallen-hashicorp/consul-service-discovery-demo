@@ -58,3 +58,11 @@ Alternatively, confirm DNS resolution via `ping` to `mysql.service.consul`, leve
 ```bash
 ping mysql.service.consul
 ```
+
+### Testing DNS with MySQL
+
+To finish we can test that we can actualy login to the MySQL server
+
+```bash
+mysql -u root -prootpassword -h mysql.service.consul
+```
