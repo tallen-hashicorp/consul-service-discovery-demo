@@ -1,0 +1,48 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: dnsmasq-config
+data:
+  dnsmasq.conf: |
+    server=/consul/consul/  # Configures dnsmasq to forward queries for .consul domain to Consul DNS
+    listen-address=127.0.0.1
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: startup-script
+data:
+  startup.sh: |
+    #!/bin/bash
+    echo "Executing startup script..."
+    # Add your startup commands here
+    
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: ubuntu-client
+  labels:
+    app: ubuntu-client
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: ubuntu-client
+  template:
+    metadata:
+      labels:
+        app: ubuntu-client
+    spec:
+      containers:
+      - name: ubuntu
+        image: ubuntu:latest
+        command: ["sleep", "infinity"]
+        tty: true
+        volumeMounts:
+        - name: dnsmasq-config-volume
+          mountPath: /etc/dnsmasq.d
+      volumes:
+      - name: dnsmasq-config-volume
+        configMap:
+          name: dnsmasq-config
