@@ -2,66 +2,66 @@
 
 This repository contains a basic demo showcasing service discovery using Consul on Kubernetes (K8s). The setup includes a 3-node Consul server cluster and a MySQL database registered as a service in Consul.
 
-## Start Consul Server
+## Start Consul Server Cluster
 
-To start the Consul server cluster, apply the Kubernetes manifest `0-server.yml` located in the `k8s` directory.
-
-```bash
-kubectl apply -f k8s/0-server.yml 
-```
-
-## Test Consul Server UI
-
-Forward the port to access the Consul UI and navigate to `127.0.0.1:8500` in your browser to interact with the Consul UI.
+Begin by deploying the Consul server cluster using the Kubernetes manifest `0-server.yml` located in the `k8s` directory. This manifest sets up the foundational infrastructure necessary for Consul to manage service registration and discovery.
 
 ```bash
-kubectl port-forward services/consul-ui 8500:8500
+kubectl apply -f k8s/0-server.yml
 ```
 
-## Add MySQL and Service
+## Explore Consul Server UI
 
-Deploy MySQL and register it as a service in Consul by applying the Kubernetes manifest `1-mysql.yml` located in the `k8s` directory.
+Access the Consul UI by forwarding the port to `127.0.0.1:8500` on your local machine. The UI provides a graphical interface to interact with Consul, enabling you to monitor services, health checks, and other configurations.
+
+```bash
+kubectl port-forward service/consul-ui 8500:8500
+```
+
+## Deploy MySQL and Register as Service
+
+Deploy MySQL as a Kubernetes service and register it with Consul using the manifest `1-mysql.yml` from the `k8s` directory. This step ensures that MySQL is discoverable within the Consul ecosystem.
 
 ```bash
 kubectl apply -f k8s/1-mysql.yml
 ```
 
-## Scale out MySQL
+## Scale MySQL Deployment
 
-Lets scale out MySQL to 5 and see what this looks like in Consul
+Demonstrate scaling capabilities by increasing the MySQL deployment to 5 replicas. This action illustrates how Consul dynamically updates service discovery information to reflect the new instances.
 
 ```bash
 kubectl scale deployment mysql --replicas 5
 ```
 
-## Execute Commands in Ubuntu Client
+## Test DNS Resolution with Ubuntu Client
 
-To test DNS resolution using Consul, access the Ubuntu client container and perform the following commands:
+Access an Ubuntu client container within Kubernetes (`2-ubuntu.yml`) to perform DNS resolution tests using Consul.
 
 ```bash
 kubectl apply -f k8s/2-ubuntu.yml
 kubectl exec -it ubuntu-client-*** -- bash
 ```
 
-### Test DNS Resolution with `dig`
+### Verify DNS Resolution with `dig`
 
-Verify DNS resolution directly using `dig` with port `8600` and querying `consul.default.svc.cluster.local` for the MySQL service.
+Confirm DNS resolution functionality by using `dig` to query the Consul DNS server (`8600`) for the MySQL service registered as `mysql.service.consul`.
 
 ```bash
 dig -p 8600 @consul.default.svc.cluster.local mysql.service.consul
 ```
 
-### Test DNS Resolution with `ping`
+### Check DNS Resolution with `ping`
 
-Alternatively, confirm DNS resolution via `ping` to `mysql.service.consul`, leveraging the `dnsmasq` setup for seamless service discovery.
+Alternatively, validate DNS resolution through `ping` to `mysql.service.consul`, leveraging the `dnsmasq` setup provided by Consul for seamless service discovery.
 
 ```bash
 ping mysql.service.consul
 ```
 
-### Testing DNS with MySQL
+### Test MySQL Connectivity
 
-To finish we can test that we can actualy login to the MySQL server
+Ensure connectivity to MySQL service by logging in using the MySQL client:
 
 ```bash
 mysql -u root -prootpassword -h mysql.service.consul
