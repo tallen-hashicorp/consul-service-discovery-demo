@@ -1,22 +1,29 @@
 apiVersion: v1
 kind: ConfigMap
 metadata:
-  name: dnsmasq-config
-data:
-  dnsmasq.conf: |
-    server=/consul/consul/  # Configures dnsmasq to forward queries for .consul domain to Consul DNS
-    listen-address=127.0.0.1
----
-apiVersion: v1
-kind: ConfigMap
-metadata:
   name: startup-script
 data:
   startup.sh: |
     #!/bin/bash
     echo "Executing startup script..."
-    # Add your startup commands here
-    touch /tmp/tyler
+
+    # Install dnsmasq
+    apt-get update -y
+    apt-get install dnsmasq dnsutils ldnsutils -y
+    apt install iputils-ping -y
+    apt install dnsutils
+    
+    # Configure dnsmasq
+    echo "server=/consul/consul.default.svc.cluster.local#8600\nserver=10.96.0.10" > /etc/dnsmasq.d/10-consul
+
+    # Start dnsmasq
+    /etc/init.d/dnsmasq start
+
+    # Configure resolve.conf
+    awk 'NR > 1' /etc/resolv.conf > /tmp/temp 
+    echo "nameserver 127.0.0.1" | tee -a /tmp/temp
+    cp /tmp/temp /etc/resolv.conf
+    
     # Wait forever
     sleep infinity
 ---
@@ -38,18 +45,14 @@ spec:
     spec:
       containers:
       - name: ubuntu
-        image: ubuntu:latest
+        image: ubuntu:24.04
         command: ["sh", "/startup.sh"]
         tty: true
         volumeMounts:
-        - name: dnsmasq-config-volume
-          mountPath: /etc/dnsmasq.d
         - name: startup-script-volume
           mountPath: /startup.sh
+          subPath: startup.sh  # Specify the file name in the ConfigMap
       volumes:
-      - name: dnsmasq-config-volume
-        configMap:
-          name: dnsmasq-config
       - name: startup-script-volume
         configMap:
           name: startup-script
